@@ -7,5 +7,7 @@
 タップするのが嫌になったら　画面を閉じ
 瞼を閉じて　休んで下さいね
 
+
+
 アプリ体験
 https://soraniikou.github.io/sora/sora.html
