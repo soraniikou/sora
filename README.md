@@ -3,12 +3,14 @@
 何もしたくない時　ただ画面を眺めタップする
 タップする回数も　タップするタイミングも
 お気にめすまま 波紋の光が出るだけです
-<img width="416" height="210" alt="mabuta2" src="https://github.com/user-attachments/assets/4e023324-506c-4ada-83dd-958f7587e06c" />
+
+<img width="518" height="404" alt="orion" src="https://github.com/user-attachments/assets/92364397-217d-4bf2-8166-ff501b7760e6" />
 
 
 タップするのが嫌になったら　画面を閉じ
 瞼を閉じて　休んで下さいね
-<img width="524" height="394" alt="mabuta3" src="https://github.com/user-attachments/assets/5349d2f3-74c5-4f56-9a04-9376a9971b58" />
+
+<img width="395" height="427" alt="orion1" src="https://github.com/user-attachments/assets/b857525b-489c-44a8-a61c-16ed93f259da" />
 
 
 
