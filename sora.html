@@ -107,7 +107,7 @@ sora.html
   }
 
   .word-sub {
-    font-size: clamp(0.6rem, 2vw, 0.75rem);
+    font-size: clamp(0.72rem, 2.4vw, 0.9rem);
     letter-spacing: 0.4em;
     color: rgba(255,255,255,0.55);
     margin-top: 0.8rem;
@@ -120,6 +120,17 @@ sora.html
     z-index: 16;
     pointer-events: none;
   }
+
+  /* オリオン座 Canvas */
+  #orion-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 17;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 3s ease;
+  }
+  #orion-canvas.visible { opacity: 1; }
 
   /* タップヒント */
   #hint {
@@ -178,6 +189,7 @@ sora.html
 <div class="overlay"></div>
 <div id="breath-orb"></div>
 <canvas id="star-canvas"></canvas>
+<canvas id="orion-canvas"></canvas>
 
 <div id="word">
   <div class="word-main" id="word-text">ただ、ここにいていい</div>
@@ -196,8 +208,10 @@ const skies = [
   { gradient: 'linear-gradient(to bottom, #1a1a2e 0%, #4a5568 30%, #718096 60%, #a0aec0 85%, #e8d5b7 100%)', words: ['失ったものは<br>本当にあった', 'だから今　痛い'], subs: ['それでいい', '空に思いを投げる'] },
   { gradient: 'linear-gradient(to bottom, #0d1117 0%, #1e2d40 40%, #2d4a6e 70%, #4a7fa5 100%)', words: ['痛みは<br>そのままで', 'それだけで<br>十分'], subs: ['ゆっくり　ゆっくり', '焦らなくていい'] },
   { gradient: 'linear-gradient(to bottom, #2d1b33 0%, #4a3560 40%, #7a6090 70%, #b8a8c8 90%, #e8dff0 100%)', words: ['人は変わる', 'それでも空は続く'], subs: ['あなたも続いていく', ''] },
-  { gradient: 'linear-gradient(to bottom, #0a0d1a 0%, #1a2035 30%, #2a3050 60%, #1a2840 100%)', words: ['超えられない夜を<br>抱きしめる'], subs: ['それでいい'] },
-  { gradient: 'linear-gradient(to bottom, #0d0a14 0%, #1e1428 40%, #2e1e3e 70%, #4a3060 100%)', words: ['瞼を閉じる'], subs: ['泣いてもいいよ'] },
+  { gradient: 'radial-gradient(ellipse at 60% 30%, #1a1428 0%, #0a0812 40%, #000008 100%), linear-gradient(to bottom, #08060f 0%, #100d1e 25%, #0d0a18 55%, #1a1030 80%, #0a0814 100%)', fixedBg: true, words: ['超えられない夜を<br>抱きしめる'], subs: ['それでいい'] },
+  { gradient: 'radial-gradient(ellipse at 40% 25%, #1c1230 0%, #08050f 45%, #000008 100%), linear-gradient(to bottom, #060410 0%, #0e0b1c 30%, #0a0816 60%, #160e28 85%, #080510 100%)', fixedBg: true, words: ['瞼を閉じる'], subs: ['泣いてもいいよ'] },
+  { gradient: 'radial-gradient(ellipse at 55% 35%, #18102a 0%, #090610 45%, #000008 100%), linear-gradient(to bottom, #07050f 0%, #0f0c1c 30%, #0b0918 60%, #18102a 85%, #09060f 100%)', fixedBg: true, words: ['どうかお願い'], subs: ['私は私で良いと思えるように'] },
+  { gradient: 'radial-gradient(ellipse at 45% 28%, #150e24 0%, #080510 45%, #000006 100%), linear-gradient(to bottom, #060410 0%, #0d0b1a 30%, #090716 60%, #140c22 85%, #070410 100%)', fixedBg: true, words: ['神様　おねがい'], subs: ['声を聞かせて'] },
 ];
 
 // 実際の写真ファイルがある場合は以下のように上書き
@@ -218,8 +232,10 @@ function applySky(el, idx) {
   const s = skies[idx];
   if (s.image) {
     el.style.backgroundImage = `url(${s.image})`;
+    el.style.backgroundSize = 'cover';
   } else {
     el.style.backgroundImage = s.gradient;
+    el.style.backgroundSize = s.fixedBg ? 'cover' : '200% 200%';
   }
 }
 
@@ -272,6 +288,15 @@ function showScene(idx) {
     }
   }
 
+  // オリオン座の表示切替
+  if (isOrionScene(idx)) {
+    orionCanvas.classList.add('visible');
+    startOrionAnim();
+  } else {
+    orionCanvas.classList.remove('visible');
+    setTimeout(stopOrionAnim, 3000); // フェードアウト後に停止
+  }
+
   // フェードイン
   setTimeout(() => {
     inactive.classList.remove('visible');
@@ -289,7 +314,7 @@ function nextScene(x, y) {
   // 波紋（サイズランダム・速度3倍遅・色ランダム）
   const rippleSize = 15 + Math.random() * 45;
   const rippleColor = Math.random() < 0.3
-    ? `rgba(${100 + Math.floor(Math.random()*60)}, ${60 + Math.floor(Math.random()*40)}, 255, 0.55)`
+    ? `rgba(${60 + Math.floor(Math.random()*40)}, ${10 + Math.floor(Math.random()*20)}, ${180 + Math.floor(Math.random()*60)}, 0.85)`
     : 'rgba(255,255,255,0.3)';
   const r = document.createElement('div');
   r.className = 'ripple';
@@ -414,7 +439,7 @@ function spawnShootingStar() {
     x: sx, y: sy,
     vx, vy,
     // 核のサイズ：4px × 0.7 ≒ 2.8px
-    radius: 2.8,
+    radius: 1.96,
     tail: [],
     tailLen: TAIL_LEN,
     // 生存フレーム：画面の対角を超えるくらいまで
@@ -502,6 +527,196 @@ function scheduleNextStar() {
   setTimeout(scheduleNextStar, 20000);
 }
 setTimeout(scheduleNextStar, 5000 + Math.random() * 5000);
+
+// ── オリオン座 ──
+const orionCanvas = document.getElementById('orion-canvas');
+const orionCtx = orionCanvas.getContext('2d');
+
+function resizeOrionCanvas() {
+  orionCanvas.width  = window.innerWidth;
+  orionCanvas.height = window.innerHeight;
+  drawOrion();
+}
+window.addEventListener('resize', resizeOrionCanvas);
+
+// オリオン座の星（正規化座標 0〜1）と接続線
+// 実際のオリオン座の配置に準拠
+const ORION_STARS = [
+  // name, nx, ny, magnitude(明るさ1〜4)
+  { n:'ベテルギウス',  x:0.36, y:0.32, m:1 },  // 左肩（赤色超巨星）
+  { n:'リゲル',        x:0.68, y:0.72, m:1 },  // 右足（青白色）
+  { n:'ベラトリクス',  x:0.62, y:0.30, m:2 },  // 右肩
+  { n:'サイフ',        x:0.38, y:0.74, m:2 },  // 左足
+  { n:'ミンタカ',      x:0.44, y:0.50, m:3 },  // 三つ星 右
+  { n:'アルニラム',    x:0.50, y:0.52, m:2 },  // 三つ星 中
+  { n:'アルニタク',    x:0.56, y:0.54, m:2 },  // 三つ星 左
+  { n:'メイッサ',      x:0.50, y:0.18, m:3 },  // 頭
+  { n:'肩左上',        x:0.30, y:0.25, m:4 },  // 左腕上
+  { n:'肩右上',        x:0.70, y:0.23, m:4 },  // 右腕上
+];
+
+const ORION_LINES = [
+  [0,4],[0,3],[1,6],[1,2],[2,4],[3,5],[4,5],[5,6], // 胴体・足
+  [0,8],[2,9],[7,0],[7,2],                          // 頭・腕
+];
+
+// 流星群の軌跡（オリオン座から放射）
+const orionMeteors = [];
+let orionMeteorTimer = 0;
+
+function spawnOrionMeteor() {
+  const W = orionCanvas.width;
+  const H = orionCanvas.height;
+  // 放射点：オリオン座の中心付近（三つ星あたり）
+  const radX = W * 0.50;
+  const radY = H * 0.48;
+  // 放射方向：放射点から外側へランダムに広がる
+  const angle = Math.random() * Math.PI * 2;
+  const dist  = 80 + Math.random() * 120;
+  const speed = 2 + Math.random() * 1.67;
+  const len   = 100 + Math.random() * 160;
+
+  orionMeteors.push({
+    x: radX + Math.cos(angle) * dist,
+    y: radY + Math.sin(angle) * dist,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    len,
+    life: 0,
+    maxLife: Math.round(len / speed) + 30,
+    tail: [],
+    opacity: 0,
+    color: Math.random() < 0.5
+      ? { r:255, g:255, b:255 }
+      : Math.random() < 0.5
+        ? { r:180, g:210, b:255 }  // 青白
+        : { r:255, g:220, b:120 }, // 淡金
+  });
+}
+
+function drawOrion() {
+  const W = orionCanvas.width;
+  const H = orionCanvas.height;
+  orionCtx.clearRect(0, 0, W, H);
+
+  // ── 背景の細かい星をランダムで描画（シードを固定するためindexベース）──
+  // 毎フレームではなく初期化時のみ描く静止星
+  if (!orionCanvas._staticStars) {
+    orionCanvas._staticStars = Array.from({length: 180}, (_, i) => ({
+      x: ((i * 137.508) % 1) * W,
+      y: ((i * 97.531)  % 1) * H,
+      r: 0.3 + (i % 5) * 0.18,
+      a: 0.2 + (i % 7) * 0.08,
+    }));
+  }
+  orionCanvas._staticStars.forEach(s => {
+    orionCtx.beginPath();
+    orionCtx.arc(s.x * (W / (orionCanvas._w || W)), s.y * (H / (orionCanvas._h || H)), s.r, 0, Math.PI * 2);
+    orionCtx.fillStyle = `rgba(255,255,255,${s.a})`;
+    orionCtx.fill();
+  });
+  orionCanvas._w = W; orionCanvas._h = H;
+
+  // ── オリオン座の接続線 ──
+  ORION_LINES.forEach(([a, b]) => {
+    const sa = ORION_STARS[a], sb = ORION_STARS[b];
+    orionCtx.beginPath();
+    orionCtx.moveTo(sa.x * W, sa.y * H);
+    orionCtx.lineTo(sb.x * W, sb.y * H);
+    orionCtx.strokeStyle = 'rgba(180,200,255,0.18)';
+    orionCtx.lineWidth = 0.8;
+    orionCtx.stroke();
+  });
+
+  // ── オリオン座の星 ──
+  ORION_STARS.forEach(s => {
+    const px = s.x * W, py = s.y * H;
+    const baseR = [5, 4, 3, 2][s.m - 1];
+    // グロー
+    const g = orionCtx.createRadialGradient(px, py, 0, px, py, baseR * 4);
+    const isRed = s.n === 'ベテルギウス';
+    const sc = isRed ? '255,160,80' : s.m <= 2 ? '200,220,255' : '255,255,255';
+    g.addColorStop(0,   `rgba(${sc},${s.m === 1 ? 1 : 0.85})`);
+    g.addColorStop(0.3, `rgba(${sc},0.4)`);
+    g.addColorStop(1,   `rgba(${sc},0)`);
+    orionCtx.beginPath();
+    orionCtx.arc(px, py, baseR * 4, 0, Math.PI * 2);
+    orionCtx.fillStyle = g;
+    orionCtx.fill();
+    // 核
+    orionCtx.beginPath();
+    orionCtx.arc(px, py, baseR, 0, Math.PI * 2);
+    orionCtx.fillStyle = `rgba(${sc},1)`;
+    orionCtx.fill();
+  });
+
+  // ── オリオン座流星群の軌跡 ──
+  orionMeteorTimer++;
+  if (orionMeteorTimer % 40 === 0) spawnOrionMeteor();
+
+  for (let i = orionMeteors.length - 1; i >= 0; i--) {
+    const m = orionMeteors[i];
+    m.life++;
+    if (m.life < 10) m.opacity = m.life / 10;
+
+    const outOfBounds =
+      m.x < -200 || m.x > W + 200 || m.y < -200 || m.y > H + 200;
+
+    if (!outOfBounds) {
+      m.tail.unshift({ x: m.x, y: m.y });
+      if (m.tail.length > 60) m.tail.pop();
+      m.x += m.vx;
+      m.y += m.vy;
+    } else {
+      if (m.tail.length > 0) m.tail.pop();
+      m.opacity = Math.max(0, m.opacity - 0.04);
+    }
+
+    if (m.life > m.maxLife || (outOfBounds && m.tail.length === 0)) {
+      orionMeteors.splice(i, 1);
+      continue;
+    }
+
+    if (m.tail.length >= 2) {
+      for (let j = 0; j < m.tail.length - 1; j++) {
+        const prog  = j / m.tail.length;
+        const alpha = m.opacity * (1 - prog) * 0.9;
+        const w     = (1 - prog) * 2;
+        const c = m.color;
+        orionCtx.beginPath();
+        orionCtx.moveTo(m.tail[j].x, m.tail[j].y);
+        orionCtx.lineTo(m.tail[j+1].x, m.tail[j+1].y);
+        orionCtx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${alpha.toFixed(3)})`;
+        orionCtx.lineWidth = w;
+        orionCtx.lineCap = 'round';
+        orionCtx.stroke();
+      }
+    }
+  }
+}
+
+// アニメーションループ（オリオン表示中のみ）
+let orionAnimId = null;
+function startOrionAnim() {
+  if (orionAnimId) return;
+  function loop() {
+    drawOrion();
+    orionAnimId = requestAnimationFrame(loop);
+  }
+  orionAnimId = requestAnimationFrame(loop);
+}
+function stopOrionAnim() {
+  if (orionAnimId) { cancelAnimationFrame(orionAnimId); orionAnimId = null; }
+  orionCtx.clearRect(0, 0, orionCanvas.width, orionCanvas.height);
+}
+
+// オリオン表示が必要なシーンインデックスを特定
+const ORION_SCENE_WORDS = ['超えられない夜を<br>抱きしめる', '瞼を閉じる', 'どうかお願い', '神様　おねがい'];
+function isOrionScene(idx) {
+  return skies[idx].words.some(w => ORION_SCENE_WORDS.includes(w));
+}
+
+resizeOrionCanvas();
 
 // 初期表示
 showScene(0);
