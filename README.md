@@ -2,7 +2,7 @@
 
 何もしたくない時　ただ画面を眺めタップする
 タップする回数も　タップするタイミングも
-お気にめすまま
+お気にめすまま 波紋の光が出るだけです
 <img width="416" height="210" alt="mabuta2" src="https://github.com/user-attachments/assets/4e023324-506c-4ada-83dd-958f7587e06c" />
 
 
