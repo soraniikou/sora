@@ -573,7 +573,7 @@ function spawnOrionMeteor() {
   // 放射方向：放射点から外側へランダムに広がる
   const angle = Math.random() * Math.PI * 2;
   const dist  = 80 + Math.random() * 120;
-  const speed = 2 + Math.random() * 1.67;
+  const speed = 1 + Math.random() * 0.8;
   const len   = 100 + Math.random() * 160;
 
   orionMeteors.push({
@@ -586,7 +586,7 @@ function spawnOrionMeteor() {
     maxLife: Math.round(len / speed) + 30,
     tail: [],
     opacity: 0,
-    color: Math.random() < 0.5
+    color: Math.random() < 0.05
       ? { r:255, g:255, b:255 }
       : Math.random() < 0.5
         ? { r:180, g:210, b:255 }  // 青白
@@ -728,4 +728,5 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
