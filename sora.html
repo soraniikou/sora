@@ -207,7 +207,7 @@ const skies = [
   { gradient: 'linear-gradient(to bottom, #2c3e50 0%, #4a6fa5 40%, #c9a96e 70%, #8b5e3c 100%)', words: ['ただ、ここにいていい', '何も決めなくていい'], subs: ['あなたの名前を呼んで', 'この瞬間だけでいい'] },
   { gradient: 'linear-gradient(to bottom, #1a1a2e 0%, #4a5568 30%, #718096 60%, #a0aec0 85%, #e8d5b7 100%)', words: ['失ったものは<br>本当にあった', 'だから今　痛い'], subs: ['それでいい', '空に思いを投げる'] },
   { gradient: 'linear-gradient(to bottom, #0d1117 0%, #1e2d40 40%, #2d4a6e 70%, #4a7fa5 100%)', words: ['痛みは<br>そのままで', 'それだけで<br>十分'], subs: ['ゆっくり　ゆっくり', '焦らなくていい'] },
-  { gradient: 'linear-gradient(to bottom, #2d1b33 0%, #4a3560 40%, #7a6090 70%, #b8a8c8 90%, #e8dff0 100%)', words: ['人は変わる', 'それでも空は続く'], subs: ['あなたも変わっていい　かわらなくてもいい', ''] },
+  { gradient: 'linear-gradient(to bottom, #2d1b33 0%, #4a3560 40%, #7a6090 70%, #b8a8c8 90%, #e8dff0 100%)', words: ['人は変わる', 'それでも空は続く'], subs: ['あなたも続いていく', ''] },
   { gradient: 'radial-gradient(ellipse at 60% 30%, #1a1428 0%, #0a0812 40%, #000008 100%), linear-gradient(to bottom, #08060f 0%, #100d1e 25%, #0d0a18 55%, #1a1030 80%, #0a0814 100%)', fixedBg: true, words: ['超えられない夜を<br>抱きしめる'], subs: ['それでいい'] },
   { gradient: 'radial-gradient(ellipse at 40% 25%, #1c1230 0%, #08050f 45%, #000008 100%), linear-gradient(to bottom, #060410 0%, #0e0b1c 30%, #0a0816 60%, #160e28 85%, #080510 100%)', fixedBg: true, words: ['瞼を閉じる'], subs: ['泣いてもいいよ'] },
   { gradient: 'radial-gradient(ellipse at 55% 35%, #18102a 0%, #090610 45%, #000008 100%), linear-gradient(to bottom, #07050f 0%, #0f0c1c 30%, #0b0918 60%, #18102a 85%, #09060f 100%)', fixedBg: true, words: ['どうかお願い'], subs: ['私は私で良いと思えるように'] },
@@ -573,20 +573,22 @@ function spawnOrionMeteor() {
   // 放射方向：放射点から外側へランダムに広がる
   const angle = Math.random() * Math.PI * 2;
   const dist  = 80 + Math.random() * 120;
-  const speed = 1 + Math.random() * 0.8;
-  const len   = 100 + Math.random() * 160;
+  const speed = 0.67 + Math.random() * 0.56;
+  // 対角線距離ぶんだけ走りきれるmaxLifeにして画面端まで尾を引く
+  const diagonal = Math.round(Math.sqrt(W * W + H * H));
+  const tailMax  = Math.round(diagonal / speed); // 尾の履歴点数＝画面対角分
 
   orionMeteors.push({
     x: radX + Math.cos(angle) * dist,
     y: radY + Math.sin(angle) * dist,
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
-    len,
     life: 0,
-    maxLife: Math.round(len / speed) + 30,
+    maxLife: tailMax + 60,
+    tailMax,
     tail: [],
     opacity: 0,
-    color: Math.random() < 0.05
+    color: Math.random() < 0.5
       ? { r:255, g:255, b:255 }
       : Math.random() < 0.5
         ? { r:180, g:210, b:255 }  // 青白
@@ -652,27 +654,26 @@ function drawOrion() {
 
   // ── オリオン座流星群の軌跡 ──
   orionMeteorTimer++;
-  if (orionMeteorTimer % 40 === 0) spawnOrionMeteor();
+  if (orionMeteorTimer % 600 === 0) spawnOrionMeteor();
 
   for (let i = orionMeteors.length - 1; i >= 0; i--) {
     const m = orionMeteors[i];
     m.life++;
     if (m.life < 10) m.opacity = m.life / 10;
 
-    const outOfBounds =
-      m.x < -200 || m.x > W + 200 || m.y < -200 || m.y > H + 200;
+    // 核は常に動かし続ける（画面外でも尾を積み上げる）
+    m.tail.unshift({ x: m.x, y: m.y });
+    if (m.tail.length > m.tailMax) m.tail.pop();
+    m.x += m.vx;
+    m.y += m.vy;
 
-    if (!outOfBounds) {
-      m.tail.unshift({ x: m.x, y: m.y });
-      if (m.tail.length > 60) m.tail.pop();
-      m.x += m.vx;
-      m.y += m.vy;
-    } else {
+    // maxLife超え後はフェードアウトしながら尾を縮める
+    if (m.life > m.maxLife) {
       if (m.tail.length > 0) m.tail.pop();
-      m.opacity = Math.max(0, m.opacity - 0.04);
+      m.opacity = Math.max(0, m.opacity - 0.008);
     }
 
-    if (m.life > m.maxLife || (outOfBounds && m.tail.length === 0)) {
+    if (m.opacity <= 0 && m.life > m.maxLife) {
       orionMeteors.splice(i, 1);
       continue;
     }
@@ -681,7 +682,7 @@ function drawOrion() {
       for (let j = 0; j < m.tail.length - 1; j++) {
         const prog  = j / m.tail.length;
         const alpha = m.opacity * (1 - prog) * 0.9;
-        const w     = (1 - prog) * 2;
+        const w     = (1 - prog) * 2.5;
         const c = m.color;
         orionCtx.beginPath();
         orionCtx.moveTo(m.tail[j].x, m.tail[j].y);
@@ -728,5 +729,3 @@ setInterval(() => {
 </script>
 </body>
 </html>
-
-
