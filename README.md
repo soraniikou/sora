@@ -1,10 +1,11 @@
-何もしたくない時　ただ感じて眺める
+何もしたくない時　ただ空を感じて眺める
 
 何もしたくない時　ただ画面を眺めタップする
 タップする回数も　タップするタイミングも
 お気にめすまま 波紋の光が出るだけです
+![0928kinu](./0928kinu.png)
+![スクリーンショット](./スクリーンショット%202026-05-26%20122343.png)
 
-<img width="518" height="404" alt="orion" src="https://github.com/user-attachments/assets/92364397-217d-4bf2-8166-ff501b7760e6" />
 
 
 タップするのが嫌になったら　画面を閉じ
@@ -16,6 +17,5 @@
 
 
 アプリ体験
-https://soraniikou.github.io/sora/sora.html
-<img width="405" height="352" alt="mabutani" src="https://github.com/user-attachments/assets/aa68969e-29e9-40c6-ac2e-e84d9273b6bc" />
+https://sora-hosi.vercel.app
 
